@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Moray</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  <header>
+    <h1>MORAY</h1>
+  <div class="header-right hidden" id="appHeader">
+    <span id="userEmailLabel" class="user-email"></span>
+
+    <button id="navAdd" class="btn active-tab">Add Movie</button>
+    <button id="navToWatch" class="btn secondary">To watch</button>
+    <button id="navWatched" class="btn secondary">Watched</button>
+
+    <button id="logoutBtn" class="btn secondary" style="display:none;">Logout</button>
+  </div>
+  </header>
+
+  <main>
+    <!-- Auth section -->
+    <section id="authSection" class="card auth-card">
+      <h2>Welcome to Moray</h2>
+      <p class="auth-subtitle">Log in or create an account to save your movies online.</p>
+
+      <div class="auth-tabs">
+        <button class="btn small auth-tab active" data-mode="login">Login</button>
+        <button class="btn small auth-tab" data-mode="signup">Sign up</button>
+      </div>
+
+      <form id="authForm">
+        <div class="form-row">
+          <div class="field">
+            <label for="authEmail">Email</label>
+            <input type="email" id="authEmail" required placeholder="you@example.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="authPassword">Password</label>
+            <input type="password" id="authPassword" required placeholder="At least 8 characters" />
+          </div>
+        </div>
+        <div class="form-row">
+          <button type="submit" class="btn" id="authSubmitBtn">Login</button>
+        </div>
+        <p id="authError" class="auth-error"></p>
+      </form>
+    </section>
+
+    <!-- App section, only visible when logged in -->
+    <section id="appSection" class="hidden">
+
+      <!-- ADD PAGE -->
+      <section id="pageAdd" class="page-section">
+        <section id="addMovieSection" class="card">
+          <h2>Add a movie or series</h2>
+
+          <div class="form-row">
+            <div class="field suggestions">
+              <label for="searchInput">Search movie title (online)</label>
+              <input type="text" id="searchInput" placeholder="Type at least 3 letters..." autocomplete="off" />
+              <div id="suggestionsList" style="display:none;"></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="titleInput">Title</label>
+              <input type="text" id="titleInput" placeholder="Title" />
+            </div>
+            <div class="field">
+              <label for="yearInput">Release year</label>
+              <input type="number" id="yearInput" placeholder="Year" />
+            </div>
+            <div class="field">
+              <label for="typeSelect">Type</label>
+              <select id="typeSelect">
+                <option value="movie">Movie</option>
+                <option value="series">Series</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="genreInput">Genre (auto or write yourself)</label>
+              <input type="text" id="genreInput" placeholder="Genre" />
+            </div>
+            <div class="field">
+              <label for="statusSelect">Add to</label>
+              <select id="statusSelect">
+                <option value="toWatch">To watch</option>
+                <option value="watched">Watched</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="reviewInput">Your review or notes</label>
+              <textarea id="reviewInput" placeholder="What did you think or why do you want to watch it?"></textarea>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field poster-wrapper">
+              <div>
+                <label>Poster preview</label>
+                <div>
+                  <img id="posterPreview" src="placeholder.png" alt="Poster preview" />
+                </div>
+              </div>
+              <span class="poster-placeholder">
+                Search a title above and choose a suggestion to fill data automatically.
+              </span>
+            </div>
+          </div>
+
+          <div class="form-row" style="justify-content: flex-end; margin-top:0.5rem;">
+            <button id="addMovieBtn" class="btn">Save to list 💾</button>
+          </div>
+        </section>
+      </section>
+
+      <!-- TO WATCH PAGE -->
+      <section id="pageToWatch" class="page-section hidden">
+        <div class="card">
+          <div class="list-header">
+            <h2>To watch</h2>
+            <span id="unwatchedCount">0 items</span>
+          </div>
+          <div id="unwatchedList"></div>
+        </div>
+      </section>
+
+      <!-- WATCHED PAGE -->
+      <section id="pageWatched" class="page-section hidden">
+        <div class="card">
+          <div class="list-header">
+            <h2>Watched</h2>
+            <span id="watchedCount">0 items</span>
+          </div>
+          <div id="watchedList"></div>
+        </div>
+      </section>
+
+    </section>
+  </main>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>
