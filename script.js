@@ -1,10 +1,10 @@
 // Moray script using Supabase backend
 
 // OMDb key and placeholder
-const OMDB_API_KEY = "34c9f39a"; // change if you have another key
+const OMDB_API_KEY = "34c9f39a"; 
 const PLACEHOLDER = "placeholder.png";
 
-// Supabase configuration - put your actual values here
+// Supabase configuration
 const SUPABASE_URL = "https://gubmquvfnuyxeuvyeexa.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1Ym1xdXZmbnV5eGV1dnllZXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MDU4NTUsImV4cCI6MjA4MDE4MTg1NX0.hnh8orWhVOFWu9W74Y2fq-qTgc39ocb4TuMcTueCLMs";
 
@@ -28,6 +28,12 @@ const authSubmitBtn = document.getElementById("authSubmitBtn");
 
 const logoutBtn = document.getElementById("logoutBtn");
 const userEmailLabel = document.getElementById("userEmailLabel");
+
+// Modal Elements (New)
+const modalOverlay = document.getElementById("customModal");
+const modalTitle = document.getElementById("modalTitle");
+const modalMessage = document.getElementById("modalMessage");
+const modalCloseBtn = document.getElementById("modalCloseBtn");
 
 // Navigation buttons and pages
 const navAdd = document.getElementById("navAdd");
@@ -64,6 +70,23 @@ posterPreview.src = PLACEHOLDER;
 posterPreview.onerror = () => {
   posterPreview.src = PLACEHOLDER;
 };
+
+// --- MODAL FUNCTIONS (New) ---
+function showModal(title, message) {
+  modalTitle.textContent = title;
+  modalMessage.textContent = message;
+  modalOverlay.classList.remove("hidden"); // ensure hidden class is gone if used
+  modalOverlay.classList.add("open");
+}
+
+function closeModal() {
+  modalOverlay.classList.remove("open");
+}
+
+modalCloseBtn.addEventListener("click", closeModal);
+modalOverlay.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) closeModal();
+});
 
 // Navigation between pages
 function showPage(page) {
@@ -154,16 +177,30 @@ authForm.addEventListener("submit", async (event) => {
 
   try {
     if (authMode === "signup") {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
+      
+      // --- NEW MODAL CODE HERE ---
+      showModal(
+        "Check your Inbox", 
+        "We've sent a confirmation link to " + email + ". Please confirm it before logging in."
+      );
+      
+      // Switch back to login mode automatically
+      authMode = "login";
+      authTabs.forEach(t => t.classList.remove("active"));
+      document.querySelector('.auth-tab[data-mode="login"]').classList.add("active");
+      authSubmitBtn.textContent = "Login";
+      // --------------------------
+
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      
+      authEmailInput.value = "";
+      authPasswordInput.value = "";
+      await checkUser();
     }
-
-    authEmailInput.value = "";
-    authPasswordInput.value = "";
-    await checkUser();
   } catch (err) {
     console.error(err);
     authErrorEl.textContent = err.message || "Authentication error.";
@@ -208,7 +245,7 @@ async function loadMoviesFromSupabase() {
 // Add movie
 async function addMovie() {
   if (!currentUser) {
-    alert("Please log in first.");
+    showModal("Login Required", "Please log in first.");
     return;
   }
 
@@ -222,7 +259,7 @@ async function addMovie() {
   const poster = posterPreview.src || PLACEHOLDER;
 
   if (!title) {
-    alert("Please enter a title first.");
+    showModal("Missing Title", "Please enter a movie title.");
     return;
   }
 
@@ -241,13 +278,17 @@ async function addMovie() {
 
   if (error) {
     console.error("Error saving movie", error);
-    alert("Could not save movie, please try again.");
+    showModal("Error", "Could not save movie, please try again.");
     return;
   }
 
   await loadMoviesFromSupabase();
   renderMovies();
   clearForm();
+  
+  // Optional: show a small 'Toast' or Modal for success
+  // showModal("Success", "Movie added to your list!"); 
+  // For adding movies, usually we don't popup a modal as it slows down adding multiple.
 }
 
 // Update watched status
