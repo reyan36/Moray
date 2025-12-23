@@ -8,7 +8,8 @@ const PLACEHOLDER = "placeholder.png";
 const SUPABASE_URL = "https://gubmquvfnuyxeuvyeexa.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1Ym1xdXZmbnV5eGV1dnllZXhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MDU4NTUsImV4cCI6MjA4MDE4MTg1NX0.hnh8orWhVOFWu9W74Y2fq-qTgc39ocb4TuMcTueCLMs";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// --- FIX IS HERE: Renamed variable to 'supabaseClient' ---
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let movies = [];
@@ -29,7 +30,7 @@ const authSubmitBtn = document.getElementById("authSubmitBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const userEmailLabel = document.getElementById("userEmailLabel");
 
-// Modal Elements (New)
+// Modal Elements
 const modalOverlay = document.getElementById("customModal");
 const modalTitle = document.getElementById("modalTitle");
 const modalMessage = document.getElementById("modalMessage");
@@ -66,27 +67,32 @@ const unwatchedCountEl = document.getElementById("unwatchedCount");
 const watchedCountEl = document.getElementById("watchedCount");
 
 // Poster placeholder
-posterPreview.src = PLACEHOLDER;
-posterPreview.onerror = () => {
-  posterPreview.src = PLACEHOLDER;
-};
+if(posterPreview) {
+    posterPreview.src = PLACEHOLDER;
+    posterPreview.onerror = () => {
+      posterPreview.src = PLACEHOLDER;
+    };
+}
 
-// --- MODAL FUNCTIONS (New) ---
+// --- MODAL FUNCTIONS ---
 function showModal(title, message) {
+  if(!modalTitle || !modalMessage || !modalOverlay) return;
   modalTitle.textContent = title;
   modalMessage.textContent = message;
-  modalOverlay.classList.remove("hidden"); // ensure hidden class is gone if used
+  modalOverlay.classList.remove("hidden");
   modalOverlay.classList.add("open");
 }
 
 function closeModal() {
-  modalOverlay.classList.remove("open");
+  if(modalOverlay) modalOverlay.classList.remove("open");
 }
 
-modalCloseBtn.addEventListener("click", closeModal);
-modalOverlay.addEventListener("click", (e) => {
-  if (e.target === modalOverlay) closeModal();
-});
+if(modalCloseBtn) modalCloseBtn.addEventListener("click", closeModal);
+if(modalOverlay) {
+    modalOverlay.addEventListener("click", (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+}
 
 // Navigation between pages
 function showPage(page) {
@@ -136,7 +142,8 @@ function showAuth() {
 
 // Check current user on load
 async function checkUser() {
-  const { data, error } = await supabase.auth.getUser();
+  // CHANGED: supabase -> supabaseClient
+  const { data, error } = await supabaseClient.auth.getUser();
   if (error || !data.user) {
     currentUser = null;
     showAuth();
@@ -174,27 +181,31 @@ authForm.addEventListener("submit", async (event) => {
     authErrorEl.textContent = "Please fill in both fields.";
     return;
   }
+  
+  // Disable button to prevent double clicks
+  authSubmitBtn.disabled = true;
+  authSubmitBtn.textContent = "Processing...";
 
   try {
     if (authMode === "signup") {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      // CHANGED: supabase -> supabaseClient
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
       if (error) throw error;
       
-      // --- NEW MODAL CODE HERE ---
       showModal(
         "Check your Inbox", 
         "We've sent a confirmation link to " + email + ". Please confirm it before logging in."
       );
       
-      // Switch back to login mode automatically
       authMode = "login";
       authTabs.forEach(t => t.classList.remove("active"));
-      document.querySelector('.auth-tab[data-mode="login"]').classList.add("active");
+      const loginTab = document.querySelector('.auth-tab[data-mode="login"]');
+      if(loginTab) loginTab.classList.add("active");
       authSubmitBtn.textContent = "Login";
-      // --------------------------
 
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      // CHANGED: supabase -> supabaseClient
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
       if (error) throw error;
       
       authEmailInput.value = "";
@@ -204,12 +215,17 @@ authForm.addEventListener("submit", async (event) => {
   } catch (err) {
     console.error(err);
     authErrorEl.textContent = err.message || "Authentication error.";
+    // Reset button text on error
+    authSubmitBtn.textContent = authMode === "login" ? "Login" : "Sign up";
+  } finally {
+    authSubmitBtn.disabled = false;
   }
 });
 
 // Logout
 logoutBtn.addEventListener("click", async () => {
-  await supabase.auth.signOut();
+  // CHANGED: supabase -> supabaseClient
+  await supabaseClient.auth.signOut();
   currentUser = null;
   showAuth();
   movies = [];
@@ -228,7 +244,8 @@ async function loadMoviesFromSupabase() {
     return;
   }
 
-  const { data, error } = await supabase
+  // CHANGED: supabase -> supabaseClient
+  const { data, error } = await supabaseClient
     .from("movies")
     .select("*")
     .eq("user_id", currentUser.id)
@@ -262,6 +279,9 @@ async function addMovie() {
     showModal("Missing Title", "Please enter a movie title.");
     return;
   }
+  
+  addMovieBtn.disabled = true;
+  addMovieBtn.innerHTML = "<span>Saving...</span>";
 
   const movieData = {
     user_id: currentUser.id,
@@ -274,26 +294,28 @@ async function addMovie() {
     poster
   };
 
-  const { error } = await supabase.from("movies").insert([movieData]);
+  // CHANGED: supabase -> supabaseClient
+  const { error } = await supabaseClient.from("movies").insert([movieData]);
 
   if (error) {
     console.error("Error saving movie", error);
-    showModal("Error", "Could not save movie, please try again.");
-    return;
+    showModal("Error", "Could not save movie. " + error.message);
+  } else {
+    await loadMoviesFromSupabase();
+    renderMovies();
+    clearForm();
+    showModal("Success", "Added to your library!");
   }
-
-  await loadMoviesFromSupabase();
-  renderMovies();
-  clearForm();
   
-  // Optional: show a small 'Toast' or Modal for success
-  // showModal("Success", "Movie added to your list!"); 
-  // For adding movies, usually we don't popup a modal as it slows down adding multiple.
+  addMovieBtn.disabled = false;
+  addMovieBtn.innerHTML = `<span>Save Title</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>`;
 }
 
 // Update watched status
 async function toggleWatchedInBackend(id, newWatched) {
-  const { error } = await supabase
+  // CHANGED: supabase -> supabaseClient
+  const { error } = await supabaseClient
     .from("movies")
     .update({ watched: newWatched })
     .eq("id", id)
@@ -310,7 +332,8 @@ async function toggleWatchedInBackend(id, newWatched) {
 
 // Delete movie
 async function deleteMovieInBackend(id) {
-  const { error } = await supabase
+  // CHANGED: supabase -> supabaseClient
+  const { error } = await supabaseClient
     .from("movies")
     .delete()
     .eq("id", id)
@@ -570,4 +593,3 @@ watchedListEl.addEventListener("click", handleListClick);
 // Start app
 showAuth();
 checkUser();
-renderMovies();
