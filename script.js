@@ -267,10 +267,19 @@ async function runAI(hasData, list) {
             ? `My List:\n${list.map(m=>`- ${m.title} (${m.year})`).join('\n')}\nConstraint: "${input}". Pick ONE. Return: Title | Vibe | Reason`
             : `Suggest ONE movie for: "${input}". Return: Title | Vibe | Reason`;
 
-        const r = await fetch("/api/ai", { method: "POST", body: JSON.stringify({ prompt }) });
+        // FIX: Added headers so the server can read the prompt
+        const r = await fetch("/api/ai", { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt }) 
+        });
+
         const d = await r.json();
         
+        if (d.error) throw new Error(d.error);
+
         const parts = (d.result || "").split("|");
+        
         resDiv.innerHTML = `
             <div class="result-tag">Top Result</div>
             <div class="result-main">${parts[0]||d.result}</div>
@@ -278,7 +287,10 @@ async function runAI(hasData, list) {
             <div class="result-reason">${parts[2]||""}</div>
         `;
         btn.textContent = "Retry";
-    } catch(e) { resDiv.textContent = "AI Error."; } 
+    } catch(e) { 
+        console.error(e);
+        resDiv.innerHTML = "AI Error: " + e.message; 
+    } 
     finally { btn.disabled = false; }
 }
 
@@ -288,13 +300,17 @@ document.getElementById("aiGenerateBtn").onclick = async () => {
     const btn = document.getElementById("aiGenerateBtn");
     btn.textContent = "...";
     try {
-        const r = await fetch("/api/ai", { method: "POST", body: JSON.stringify({ prompt: `Write 1 sentence review for "${t}"` }) });
+        // FIX: Added headers here too
+        const r = await fetch("/api/ai", { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: `Give Rating out of 10, Write 1 sentence review for "${t}"` }) 
+        });
         const d = await r.json();
-        reviewInput.value = d.result;
-    } catch(e){}
+        if (d.result) reviewInput.value = d.result;
+    } catch(e){ console.error(e); }
     btn.textContent = "AI Auto-Fill";
 };
-
 // ============================================
 // 🔎 SEARCH FIX
 // ============================================
