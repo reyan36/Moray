@@ -267,15 +267,18 @@ async function runAI(hasData, list) {
             ? `My List:\n${list.map(m=>`- ${m.title} (${m.year})`).join('\n')}\nConstraint: "${input}". Pick ONE. Return: Title | Vibe | Reason`
             : `Suggest ONE movie for: "${input}". Return: Title | Vibe | Reason`;
 
-        // FIX: Added headers so the server can read the prompt
+        // 👇 THIS IS THE FIX: Method POST + Headers
         const r = await fetch("/api/ai", { 
             method: "POST", 
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt }) 
+            headers: { 
+                "Content-Type": "application/json" 
+            },
+            body: JSON.stringify({ prompt: prompt }) 
         });
 
         const d = await r.json();
         
+        // Handle Server Errors
         if (d.error) throw new Error(d.error);
 
         const parts = (d.result || "").split("|");
@@ -300,14 +303,16 @@ document.getElementById("aiGenerateBtn").onclick = async () => {
     const btn = document.getElementById("aiGenerateBtn");
     btn.textContent = "...";
     try {
-        // FIX: Added headers here too
+        // 👇 THIS IS THE FIX: Method POST + Headers
         const r = await fetch("/api/ai", { 
             method: "POST", 
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: `Give Rating out of 10, Write 1 sentence review for "${t}"` }) 
+            headers: { 
+                "Content-Type": "application/json" 
+            },
+            body: JSON.stringify({ prompt: `Write 1 sentence review for "${t}"` }) 
         });
         const d = await r.json();
-        if (d.result) reviewInput.value = d.result;
+        if(d.result) reviewInput.value = d.result;
     } catch(e){ console.error(e); }
     btn.textContent = "AI Auto-Fill";
 };
