@@ -1,35 +1,28 @@
+// api/ai.js
 export default async function handler(req, res) {
-  // 1. Get the Key securely from Vercel Environment Variables
-  const apiKey = process.env.GROQ_API_KEY;
+  // 1. Get Google Gemini Key from Vercel
+  const apiKey = process.env.GEMINI_API_KEY; 
 
-  if (!apiKey) {
-    return res.status(500).json({ error: "Server Configuration Error: Missing API Key" });
-  }
+  if (!apiKey) return res.status(500).json({ error: "Server missing API Key" });
 
-  // 2. Get the prompt from the frontend
-  const { prompt, system } = JSON.parse(req.body);
+  const { prompt } = JSON.parse(req.body);
 
   try {
-    // 3. Call Groq from the server
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    // 2. Call Google Gemini API
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
-        messages: [
-            { role: "system", content: system || "You are a helpful assistant." },
-            { role: "user", content: prompt }
-        ],
-        max_tokens: 100,
-        temperature: 0.5
+        contents: [{ parts: [{ text: prompt }] }]
       })
     });
 
     const data = await response.json();
-    return res.status(200).json(data);
+    
+    // 3. Extract text from Gemini response structure
+    const text = data.candidates[0].content.parts[0].text;
+    
+    return res.status(200).json({ result: text });
 
   } catch (error) {
     return res.status(500).json({ error: error.message });
