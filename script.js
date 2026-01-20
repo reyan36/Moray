@@ -20,10 +20,24 @@ const firebaseConfig = {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// 1. UPDATE THE IMPORTS AT THE TOP
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged, 
+    signOut, 
+    GoogleAuthProvider, 
+    signInWithPopup 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
 // State
 let currentUser = null;
@@ -142,6 +156,19 @@ document.getElementById("authForm").onsubmit = async (e) => {
     finally { document.getElementById("authSubmitBtn").disabled = false; }
 };
 
+const googleBtn = document.getElementById("googleBtn");
+
+if (googleBtn) {
+    googleBtn.onclick = async () => {
+        try {
+            await signInWithPopup(auth, googleProvider);
+            // No need to call showApp(), onAuthStateChanged will detect it automatically
+        } catch (error) {
+            document.getElementById("authError").textContent = error.message;
+        }
+    };
+}
+
 document.getElementById("logoutBtn").onclick = () => signOut(auth);
 
 // ============================================
@@ -240,15 +267,23 @@ document.getElementById("magicPickBtn").onclick = () => {
     const hasData = unwatched.length > 0;
     
     modalContent.innerHTML = `
-      <div class="magic-title">Smart Pick</div>
+      <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:1rem;">
+          <div class="magic-title" style="margin:0;">Smart Pick</div>
+          <button onclick="document.getElementById('customModal').classList.remove('open')" style="background:none; border:none; color:#71717a; font-size:24px; line-height:1; cursor:pointer; padding:0;">&times;</button>
+      </div>
+      
       <p class="magic-desc">${hasData ? "Analyzing your list..." : "Database empty."}</p>
+      
       <input type="text" id="magicInput" class="magic-input-field" placeholder="${hasData ? 'e.g. 90 mins, Sci-Fi' : 'e.g. 90s Thriller'}">
+      
       <button id="runAiBtn" class="btn-solid full-width">Consult AI</button>
       <div id="aiRes" class="result-box"></div>
     `;
     modalBackdrop.classList.add("open");
 
+    // Focus input for better UX
     setTimeout(() => {
+        document.getElementById("magicInput").focus();
         document.getElementById("runAiBtn").onclick = () => runAI(hasData, unwatched);
     }, 100);
 };
@@ -301,7 +336,7 @@ document.getElementById("aiGenerateBtn").onclick = async () => {
         const r = await fetch("/api/ai", { 
             method: "POST", 
             headers: { "Content-Type": "application/json" }, // <-- Header Fix
-            body: JSON.stringify({ prompt: `Write 1 sentence review for "${t}"` }) 
+            body: JSON.stringify({ prompt: `Give Rating out of 10, Write 1 sentence review for "${t}"` }) 
         });
         const d = await r.json();
         if(d.result) reviewInput.value = d.result;
