@@ -3,73 +3,59 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Moray</title>
+  <title>Moray.</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
   <!-- App Container -->
   <div class="app-layout">
     
-    <!-- Sidebar / Header -->
-   <header class="sidebar">
-      <div class="brand">
-        <h1>Moray.</h1>
-      </div>
+    <!-- Sidebar -->
+    <header class="sidebar">
+      <div class="brand"><h1>Moray.</h1></div>
       
       <div id="appHeader" class="nav-container hidden">
         <div class="user-info">
-          <!-- Removed Avatar Circle -->
+          <!-- Text Only User Label -->
           <span id="userEmailLabel" class="user-label"></span>
         </div>
 
         <nav class="nav-menu">
           <button id="navAdd" class="nav-item active">
-            <!-- Plus Icon -->
             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Add Entry
           </button>
           
           <button id="navToWatch" class="nav-item">
-            <!-- Play Circle Icon -->
             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
             To Watch
           </button>
           
           <button id="navWatched" class="nav-item">
-            <!-- Check Circle Icon -->
             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             History
           </button>
         </nav>
 
-        <button id="logoutBtn" class="btn-text">
-          <!-- Log out icon optional, keeping text minimal -->
-          Sign Out
-        </button>
+        <button id="logoutBtn" class="btn-text">Sign Out</button>
       </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <main class="content-area">
       
-      <!-- AUTH SECTION -->
-      <!-- AUTH SECTION -->
+      <!-- AUTH (Full Screen) -->
       <section id="authSection" class="full-screen-auth">
-        
-        <!-- Large Prominent Branding -->
         <div class="auth-brand fade-down">
-          <h1>Moray</h1>
-          <p>Keep track of movies and shows.</p>
+          <h1>Moray.</h1>
+          <p>Your personal cinema archive.</p>
         </div>
 
         <div class="minimal-card auth-container fade-up">
-          <!-- Removed "Authentication" title, the Card Tabs act as the title now -->
-          
           <div class="tab-switcher">
             <button class="tab active" data-mode="login">Log in</button>
             <button class="tab" data-mode="signup">Sign up</button>
@@ -78,139 +64,77 @@
           <form id="authForm">
             <div class="input-group">
               <label>Email</label>
-              <input type="email" id="authEmail" required placeholder="name@example.com" class="auth-input"/>
+              <input type="email" id="authEmail" required class="auth-input" placeholder="name@domain.com"/>
             </div>
             <div class="input-group">
               <label>Password</label>
-              <input type="password" id="authPassword" required placeholder="••••••••" class="auth-input"/>
+              <input type="password" id="authPassword" required class="auth-input" placeholder="••••••••"/>
             </div>
-            <button type="submit" class="btn-solid full-width pulse-hover" id="authSubmitBtn">
-              Access Account
-            </button>
+            <button type="submit" class="btn-solid full-width pulse-hover" id="authSubmitBtn">Access Account</button>
             <p id="authError" class="error-msg"></p>
           </form>
         </div>
       </section>
 
-      <!-- APP SECTION -->
+      <!-- APP VIEWS -->
       <section id="appSection" class="hidden">
         
-        <!-- ADD PAGE -->
+        <!-- Add Page -->
         <section id="pageAdd" class="view-section fade-in">
           <div class="minimal-card form-layout">
-            
             <div class="form-col-left">
                <div class="poster-frame">
                  <img id="posterPreview" src="placeholder.png" alt="Preview" />
-                 <div class="poster-tag">Poster</div>
                </div>
             </div>
-
             <div class="form-col-right">
-              <div class="section-title">
-                <h3>New Entry</h3>
-              </div>
-
-              <!-- Search -->
+              <div class="section-title"><h3>New Entry</h3></div>
               <div class="input-group search-group">
-                <label>Search OMDb Database</label>
+                <label>Search OMDb</label>
                 <div class="search-wrapper">
                   <input type="text" id="searchInput" placeholder="Type title..." autocomplete="off" />
                   <div id="suggestionsList" class="suggestions-popover hidden"></div>
                 </div>
               </div>
-
-              <!-- Meta Data -->
               <div class="grid-2">
-                <div class="input-group">
-                  <label>Title</label>
-                  <input type="text" id="titleInput" />
-                </div>
-                <div class="input-group">
-                  <label>Year</label>
-                  <input type="number" id="yearInput" />
-                </div>
+                <div class="input-group"><label>Title</label><input type="text" id="titleInput" /></div>
+                <div class="input-group"><label>Year</label><input type="number" id="yearInput" /></div>
               </div>
-
               <div class="grid-3">
-                <div class="input-group">
-                  <label>Type</label>
-                  <div class="select-wrapper">
-                    <select id="typeSelect">
-                      <option value="movie">Movie</option>
-                      <option value="series">Series</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="input-group span-2">
-                  <label>Genre</label>
-                  <input type="text" id="genreInput" />
-                </div>
+                <div class="input-group"><label>Type</label><select id="typeSelect"><option value="movie">Movie</option><option value="series">Series</option></select></div>
+                <div class="input-group span-2"><label>Genre</label><input type="text" id="genreInput" /></div>
               </div>
-
+              <div class="input-group"><label>List</label><select id="statusSelect"><option value="toWatch">To Watch</option><option value="watched">History</option></select></div>
               <div class="input-group">
-                <label>Status</label>
-                <div class="select-wrapper">
-                  <select id="statusSelect">
-                    <option value="toWatch">To Watch</option>
-                    <option value="watched">Archived (Watched)</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- AI Review -->
-              <div class="input-group">
-                <div class="label-row">
-                  <label>Notes</label>
-                  <button type="button" id="aiGenerateBtn" class="btn-xs">AI Auto-Fill</button>
-                </div>
+                <div class="label-row"><label>Notes</label><button type="button" id="aiGenerateBtn" class="btn-xs">AI Auto-Fill</button></div>
                 <textarea id="reviewInput" rows="3"></textarea>
               </div>
-
-              <div class="form-footer">
-                <button id="addMovieBtn" class="btn-solid">Save Entry</button>
-              </div>
+              <div class="form-footer"><button id="addMovieBtn" class="btn-solid">Save Entry</button></div>
             </div>
           </div>
         </section>
 
-        <!-- TO WATCH PAGE -->
+        <!-- Lists -->
         <section id="pageToWatch" class="view-section hidden">
           <div class="list-header">
-            <div>
-              <h2>To Watch</h2>
-              <span id="unwatchedCount" class="counter">0 entries</span>
-            </div>
-            <button id="magicPickBtn" class="btn-outline">
-              <span class="icon">✦</span> Smart Pick
-            </button>
+            <div><h2>To Watch</h2><span id="unwatchedCount" class="counter">0 entries</span></div>
+            <button id="magicPickBtn" class="btn-outline">✨ Smart Pick</button>
           </div>
           <div id="unwatchedList" class="grid-feed"></div>
         </section>
 
-        <!-- WATCHED PAGE -->
         <section id="pageWatched" class="view-section hidden">
           <div class="list-header">
-            <div>
-              <h2>History</h2>
-              <span id="watchedCount" class="counter">0 entries</span>
-            </div>
+            <div><h2>History</h2><span id="watchedCount" class="counter">0 entries</span></div>
           </div>
           <div id="watchedList" class="grid-feed"></div>
         </section>
-
       </section>
     </main>
   </div>
 
-  <!-- Minimal Modal -->
-  <div id="customModal" class="modal-backdrop">
-    <div class="modal-dialog">
-      <div id="modalContent">
-        <!-- Content injected via JS -->
-      </div>
-    </div>
-  </div>
+  <!-- Modal -->
+  <div id="customModal" class="modal-backdrop"><div class="modal-dialog"><div id="modalContent"></div></div></div>
 
   <script type="module" src="script.js"></script>
 </body>
