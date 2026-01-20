@@ -4,7 +4,7 @@
 const OMDB_API_KEY = "34c9f39a"; 
 const PLACEHOLDER = "placeholder.png";
 
-// 🔥 PASTE YOUR FIREBASE CONFIG HERE 🔥
+// 🔥 FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyCvo9JWR2ghniwLyt5toNELTxM1b2rBPEU",
     authDomain: "morayio.firebaseapp.com",
@@ -12,15 +12,11 @@ const firebaseConfig = {
     storageBucket: "morayio.firebasestorage.app",
     messagingSenderId: "56539202739",
     appId: "1:56539202739:web:03a0987eeb068c43c1dcc6"
-  };
+};
 
 // ============================================
-// 📦 FIREBASE IMPORTS
+// 📦 FIREBASE IMPORTS (Merged & Fixed)
 // ============================================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-// 1. UPDATE THE IMPORTS AT THE TOP
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
     getAuth, 
@@ -33,7 +29,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-
+// Init Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -44,11 +40,21 @@ let currentUser = null;
 let movies = [];
 let searchTimeout = null;
 
-// UI
+// UI Refs
 const authSection = document.getElementById("authSection");
 const appSection = document.getElementById("appSection");
 const appHeader = document.getElementById("appHeader");
 const userEmailLabel = document.getElementById("userEmailLabel");
+
+// Auth Form
+const authForm = document.getElementById("authForm");
+const authEmail = document.getElementById("authEmail");
+const authPass = document.getElementById("authPassword");
+const authErr = document.getElementById("authError");
+const authTabs = document.querySelectorAll(".tab");
+const authBtn = document.getElementById("authSubmitBtn");
+const googleBtn = document.getElementById("googleBtn");
+let authMode = "login";
 
 // Inputs
 const searchInput = document.getElementById("searchInput");
@@ -60,6 +66,12 @@ const typeSelect = document.getElementById("typeSelect");
 const statusSelect = document.getElementById("statusSelect");
 const reviewInput = document.getElementById("reviewInput");
 const posterPreview = document.getElementById("posterPreview");
+
+// Lists
+const unwatchedListEl = document.getElementById("unwatchedList");
+const watchedListEl = document.getElementById("watchedList");
+const unwatchedCountEl = document.getElementById("unwatchedCount");
+const watchedCountEl = document.getElementById("watchedCount");
 
 // Modal
 const modalBackdrop = document.getElementById("customModal");
@@ -114,7 +126,7 @@ function clearForm() {
 }
 
 // ============================================
-// 🔐 AUTH
+// 🔐 AUTH (FIREBASE)
 // ============================================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -128,43 +140,44 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-let authMode = "login";
-document.querySelectorAll(".tab").forEach(t => t.onclick = (e) => {
+authTabs.forEach(t => t.onclick = (e) => {
     e.preventDefault();
     document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
     t.classList.add("active");
     authMode = t.dataset.mode;
-    document.getElementById("authSubmitBtn").textContent = authMode === "login" ? "Access Account" : "Create Account";
+    authBtn.textContent = authMode === "login" ? "Access Account" : "Create Account";
 });
 
-document.getElementById("authForm").onsubmit = async (e) => {
+authForm.onsubmit = async (e) => {
     e.preventDefault();
-    const em = document.getElementById("authEmail").value;
-    const pw = document.getElementById("authPassword").value;
-    const err = document.getElementById("authError");
-    err.textContent = "";
+    authErr.textContent = "";
+    const em = authEmail.value.trim();
+    const pw = authPass.value;
+    if(!em || !pw) return;
     
+    authBtn.disabled = true;
+    authBtn.textContent = "Processing...";
     try {
-        document.getElementById("authSubmitBtn").disabled = true;
         if(authMode === "signup") {
             await createUserWithEmailAndPassword(auth, em, pw);
             showModal("Success", "Welcome!");
         } else {
             await signInWithEmailAndPassword(auth, em, pw);
         }
-    } catch(error) { err.textContent = error.message.replace("Firebase:", ""); }
-    finally { document.getElementById("authSubmitBtn").disabled = false; }
+    } catch(err) {
+        authErr.textContent = "Error: " + err.code.replace("auth/", "");
+    } finally {
+        authBtn.disabled = false;
+        authBtn.textContent = authMode === "login" ? "Access Account" : "Create Account";
+    }
 };
-
-const googleBtn = document.getElementById("googleBtn");
 
 if (googleBtn) {
     googleBtn.onclick = async () => {
         try {
             await signInWithPopup(auth, googleProvider);
-            // No need to call showApp(), onAuthStateChanged will detect it automatically
         } catch (error) {
-            document.getElementById("authError").textContent = error.message;
+            authErr.textContent = error.message;
         }
     };
 }
@@ -172,7 +185,7 @@ if (googleBtn) {
 document.getElementById("logoutBtn").onclick = () => signOut(auth);
 
 // ============================================
-// 📦 DATABASE
+// 📦 DATABASE (FIRESTORE)
 // ============================================
 async function loadMovies() {
     if(!currentUser) return;
@@ -227,13 +240,10 @@ window.deleteMovie = async (id) => {
 };
 
 // ============================================
-// 🎨 RENDER (With Zinc Styling)
+// 🎨 RENDER
 // ============================================
 function renderMovies() {
-    const ul = document.getElementById("unwatchedList");
-    const wl = document.getElementById("watchedList");
-    ul.innerHTML = ""; wl.innerHTML = "";
-    
+    unwatchedListEl.innerHTML = ""; watchedListEl.innerHTML = "";
     let u=0, w=0;
     
     movies.forEach(m => {
@@ -252,11 +262,14 @@ function renderMovies() {
         `;
         div.onclick = (e) => { if(!e.target.closest('.action-icon-btn') && m.review) showModal("Notes", m.review); };
         
-        if(m.watched) { wl.appendChild(div); w++; } else { ul.appendChild(div); u++; }
+        if(m.watched) { watchedListEl.appendChild(div); w++; }
+        else { unwatchedListEl.appendChild(div); u++; }
     });
     
-    document.getElementById("unwatchedCount").textContent = u + " entries";
-    document.getElementById("watchedCount").textContent = w + " entries";
+    unwatchedCountEl.textContent = u + " entries";
+    watchedCountEl.textContent = w + " entries";
+    if(u===0) unwatchedListEl.innerHTML = `<div style="color:#52525b; grid-column:1/-1;">List is empty.</div>`;
+    if(w===0) watchedListEl.innerHTML = `<div style="color:#52525b; grid-column:1/-1;">No history.</div>`;
 }
 
 // ============================================
@@ -271,20 +284,19 @@ document.getElementById("magicPickBtn").onclick = () => {
           <div class="magic-title" style="margin:0;">Smart Pick</div>
           <button onclick="document.getElementById('customModal').classList.remove('open')" style="background:none; border:none; color:#71717a; font-size:24px; line-height:1; cursor:pointer; padding:0;">&times;</button>
       </div>
-      
       <p class="magic-desc">${hasData ? "Analyzing your list..." : "Database empty."}</p>
-      
       <input type="text" id="magicInput" class="magic-input-field" placeholder="${hasData ? 'e.g. 90 mins, Sci-Fi' : 'e.g. 90s Thriller'}">
-      
       <button id="runAiBtn" class="btn-solid full-width">Consult AI</button>
       <div id="aiRes" class="result-box"></div>
     `;
     modalBackdrop.classList.add("open");
 
-    // Focus input for better UX
     setTimeout(() => {
-        document.getElementById("magicInput").focus();
-        document.getElementById("runAiBtn").onclick = () => runAI(hasData, unwatched);
+        const input = document.getElementById("magicInput");
+        const btn = document.getElementById("runAiBtn");
+        input.focus();
+        btn.onclick = () => runAI(hasData, unwatched);
+        input.addEventListener("keypress", (e) => { if (e.key === "Enter") btn.click(); });
     }, 100);
 };
 
@@ -301,17 +313,16 @@ async function runAI(hasData, list) {
             ? `My List:\n${list.map(m=>`- ${m.title} (${m.year})`).join('\n')}\nConstraint: "${input}". Pick ONE. Return: Title | Vibe | Reason`
             : `Suggest ONE movie for: "${input}". Return: Title | Vibe | Reason`;
 
-        // 🚀 SECURE SERVER CALL (POST REQUEST)
         const r = await fetch("/api/ai", { 
-            method: "POST",
-            headers: { "Content-Type": "application/json" }, // <-- Header Fix
+            method: "POST", 
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ prompt }) 
         });
         
         const d = await r.json();
         if (d.error) throw new Error(d.error);
 
-        const parts = (d.result || "").split("|");
+        const parts = (d.result || "").replace(/\*/g, '').split("|");
         resDiv.innerHTML = `
             <div class="result-tag">Top Result</div>
             <div class="result-main">${parts[0]||d.result}</div>
@@ -321,7 +332,7 @@ async function runAI(hasData, list) {
         btn.textContent = "Retry";
     } catch(e) { 
         console.error(e);
-        resDiv.textContent = "Error: " + e.message; 
+        resDiv.textContent = "AI Error: " + e.message; 
     } 
     finally { btn.disabled = false; }
 }
@@ -332,11 +343,10 @@ document.getElementById("aiGenerateBtn").onclick = async () => {
     const btn = document.getElementById("aiGenerateBtn");
     btn.textContent = "...";
     try {
-        // 🚀 SECURE SERVER CALL (POST REQUEST)
         const r = await fetch("/api/ai", { 
             method: "POST", 
-            headers: { "Content-Type": "application/json" }, // <-- Header Fix
-            body: JSON.stringify({ prompt: `Give Rating out of 10, Write 1 sentence review for "${t}"` }) 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: `Rate 1-10 & 1 sentence review for "${t}"` }) 
         });
         const d = await r.json();
         if(d.result) reviewInput.value = d.result;
@@ -345,7 +355,7 @@ document.getElementById("aiGenerateBtn").onclick = async () => {
 };
 
 // ============================================
-// 🔎 SEARCH FIX
+// 🔎 SEARCH
 // ============================================
 searchInput.addEventListener("input", (e) => {
     clearTimeout(searchTimeout);
@@ -367,7 +377,6 @@ searchInput.addEventListener("input", (e) => {
     }, 350);
 });
 
-// EXPOSED GLOBAL LOAD FUNCTION
 window.loadMovie = async (id) => {
     suggestionsList.classList.add("hidden");
     const r = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&i=${id}`);
@@ -381,3 +390,5 @@ document.getElementById("navAdd").onclick = () => showPage("pageAdd");
 document.getElementById("navToWatch").onclick = () => showPage("pageToWatch");
 document.getElementById("navWatched").onclick = () => showPage("pageWatched");
 document.getElementById("addMovieBtn").onclick = (e) => { e.preventDefault(); addMovie(); };
+
+showAuth();
