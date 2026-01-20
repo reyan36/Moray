@@ -1,32 +1,26 @@
 export default async function handler(req, res) {
-  // 1. Get Key
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    console.error("Missing GEMINI_API_KEY");
-    return res.status(500).json({ error: "Server Config Error: Missing Key" });
-  }
-
-  // 2. Parse Body (The fix for 500 Error)
-  // Vercel sometimes auto-parses, sometimes gives a string. This handles both.
-  let body = req.body;
-  if (typeof body === 'string') {
-    try {
-      body = JSON.parse(body);
-    } catch (e) {
-      return res.status(400).json({ error: "Invalid JSON" });
-    }
-  }
-
-  const { prompt } = body;
-
-  if (!prompt) {
-    return res.status(400).json({ error: "Missing prompt" });
-  }
-
   try {
-    // 3. Call Google Gemini
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "Server Configuration Error: API Key missing" });
+    }
+
+    // Parse Body
+    let body = req.body;
+    if (typeof body === 'string') {
+        try { body = JSON.parse(body); } 
+        catch (e) { return res.status(400).json({ error: "Invalid JSON" }); }
+    }
+    
+    if (!body || !body.prompt) {
+        return res.status(400).json({ error: "Missing 'prompt'" });
+    }
+
+    const { prompt } = body;
+
+    // FIX: Changed model to 'gemini-1.5-flash-latest' which is the current stable alias
+    // If this fails, we can fallback to 'gemini-pro'
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
     
     const response = await fetch(url, {
       method: "POST",
@@ -39,23 +33,21 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Gemini API Error:", errorText);
-      throw new Error(`Gemini API Error: ${response.status} ${response.statusText}`);
+      // Determine if it's a 404 (Model not found) or something else
+      return res.status(response.status).json({ error: `Gemini Error: ${response.statusText}`, details: errorText });
     }
 
     const data = await response.json();
-    
-    // 4. Safety Check for empty responses
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+
     if (!text) {
-      console.error("Gemini returned empty structure", JSON.stringify(data));
-      return res.status(500).json({ error: "AI returned no text" });
+        return res.status(500).json({ error: "AI returned empty response" });
     }
 
     return res.status(200).json({ result: text });
 
   } catch (error) {
-    console.error("Server Error:", error);
-    return res.status(500).json({ error: error.message });
+    console.error("CRASH REPORT:", error);
+    return res.status(500).json({ error: "Internal Server Error: " + error.message });
   }
 }
