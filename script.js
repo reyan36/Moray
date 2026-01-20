@@ -233,7 +233,7 @@ function renderMovies() {
 }
 
 // ============================================
-// ✨ AI LOGIC
+// ✨ AI LOGIC (Connects to /api/ai)
 // ============================================
 document.getElementById("magicPickBtn").onclick = () => {
     const unwatched = movies.filter(m => !m.watched);
@@ -248,7 +248,6 @@ document.getElementById("magicPickBtn").onclick = () => {
     `;
     modalBackdrop.classList.add("open");
 
-    // Fix button binding inside modal
     setTimeout(() => {
         document.getElementById("runAiBtn").onclick = () => runAI(hasData, unwatched);
     }, 100);
@@ -267,22 +266,17 @@ async function runAI(hasData, list) {
             ? `My List:\n${list.map(m=>`- ${m.title} (${m.year})`).join('\n')}\nConstraint: "${input}". Pick ONE. Return: Title | Vibe | Reason`
             : `Suggest ONE movie for: "${input}". Return: Title | Vibe | Reason`;
 
-        // 👇 THIS IS THE FIX: Method POST + Headers
+        // 🚀 SECURE SERVER CALL (POST REQUEST)
         const r = await fetch("/api/ai", { 
-            method: "POST", 
-            headers: { 
-                "Content-Type": "application/json" 
-            },
-            body: JSON.stringify({ prompt: prompt }) 
+            method: "POST",
+            headers: { "Content-Type": "application/json" }, // <-- Header Fix
+            body: JSON.stringify({ prompt }) 
         });
-
-        const d = await r.json();
         
-        // Handle Server Errors
+        const d = await r.json();
         if (d.error) throw new Error(d.error);
 
         const parts = (d.result || "").split("|");
-        
         resDiv.innerHTML = `
             <div class="result-tag">Top Result</div>
             <div class="result-main">${parts[0]||d.result}</div>
@@ -292,7 +286,7 @@ async function runAI(hasData, list) {
         btn.textContent = "Retry";
     } catch(e) { 
         console.error(e);
-        resDiv.innerHTML = "AI Error: " + e.message; 
+        resDiv.textContent = "Error: " + e.message; 
     } 
     finally { btn.disabled = false; }
 }
@@ -303,12 +297,10 @@ document.getElementById("aiGenerateBtn").onclick = async () => {
     const btn = document.getElementById("aiGenerateBtn");
     btn.textContent = "...";
     try {
-        // 👇 THIS IS THE FIX: Method POST + Headers
+        // 🚀 SECURE SERVER CALL (POST REQUEST)
         const r = await fetch("/api/ai", { 
             method: "POST", 
-            headers: { 
-                "Content-Type": "application/json" 
-            },
+            headers: { "Content-Type": "application/json" }, // <-- Header Fix
             body: JSON.stringify({ prompt: `Write 1 sentence review for "${t}"` }) 
         });
         const d = await r.json();
@@ -316,6 +308,7 @@ document.getElementById("aiGenerateBtn").onclick = async () => {
     } catch(e){ console.error(e); }
     btn.textContent = "AI Auto-Fill";
 };
+
 // ============================================
 // 🔎 SEARCH FIX
 // ============================================

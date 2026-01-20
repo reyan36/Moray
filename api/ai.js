@@ -1,46 +1,54 @@
 export default async function handler(req, res) {
-  // 1. Block GET requests (Fixes the log issue you saw)
+  // 1. Only allow POST requests
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: "Method Not Allowed. Use POST." });
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  // 2. Get Key
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "Server Error: Missing API Key" });
+  // 2. Get the Key securely from Vercel Settings
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!apiKey) {
+    return res.status(500).json({ error: "Server Error: Missing GROQ_API_KEY" });
+  }
 
   try {
-    // 3. Parse Body (Handles both string and object)
+    // 3. Parse the incoming data safely
     let body = req.body;
     if (typeof body === 'string') {
-      try { body = JSON.parse(body); } catch (e) { return res.status(400).json({ error: "Invalid JSON" }); }
+      try { body = JSON.parse(body); } catch (e) {}
     }
 
     const { prompt } = body || {};
-    if (!prompt) return res.status(400).json({ error: "Missing 'prompt' in request body." });
 
-    // 4. Call Google Gemini
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    
-    const response = await fetch(url, {
+    if (!prompt) {
+      return res.status(400).json({ error: "Missing prompt" });
+    }
+
+    // 4. Call Groq from the server
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
+        model: "llama-3.1-8b-instant",
+        messages: [
+            { role: "system", content: "You are a movie expert. Return only the requested format." },
+            { role: "user", content: prompt }
+        ],
+        max_tokens: 100
       })
     });
 
     const data = await response.json();
-
-    if (!response.ok) {
-        console.error("Gemini Error:", JSON.stringify(data));
-        return res.status(response.status).json({ error: data.error?.message || "Gemini API Error" });
-    }
-
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return res.status(200).json({ result: text || "No response text." });
+    
+    // 5. Send result back to frontend
+    const text = data.choices?.[0]?.message?.content || "No response";
+    return res.status(200).json({ result: text });
 
   } catch (error) {
-    console.error("Server Crash:", error);
+    console.error("API Error:", error);
     return res.status(500).json({ error: error.message });
   }
 }
