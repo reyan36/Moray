@@ -1,93 +1,64 @@
-# 🌟 MORAY 
+# MORAY
 
-Moray is a modern and elegant movie and series tracking application built with **HTML, CSS, and JavaScript**, powered by **Supabase Authentication and Database**.  
-It allows users to create accounts, log in, and save their movie lists securely in the cloud, with a polished UI and automatic poster search integration.
+**Your personal cinema archive, powered by AI.**
 
+Moray is a minimal, professional movie tracking application built on the **"Live Forever"** architecture. It combines a distraction-free interface with **Google Firebase** for permanent storage and **Groq AI** for intelligent recommendations.
 
+## Features
 
-## 🚀 Features
+### AI 
+- **Smart Pick:** Can't decide? Tell the AI how much time you have (e.g., *"90 mins, sci-fi"*), and it will analyze your specific list to recommend the perfect movie.
+- **AI Auto-Fill:** Automatically generates 1-sentence reviews and ratings for any title so you don't have to type generic notes.
 
-### 🎬 Movie & Series Manager
-- Add movies and series with:
-  - Title  
-  - Genre  
-  - Notes or personal review  
-  - Release year  
-  - Type (Movie or Series)
-- Automatic poster fetching using online search
-- Organize entries into three views:
-  - **Add**
-  - **To Watch**
-  - **Watched**
+### Cinema Manager
+- **Instant Search:** Fetches metadata and high-res posters via OMDb API.
+- **Organization:** Seamlessly move titles between **"To Watch"** and **"History"**.
+- **Minimal UI:** A professional "Zinc" dark theme designed for focus, not clutter.
 
-### 🔐 Secure Authentication (Supabase)
-- Email and password signup
-- Login and logout system
-- Auto session handling
-- Each user's data is private (RLS enabled)
-
-### ☁️ Cloud Sync
-- Movies saved to Supabase database
-- Accessible on any device
-- Everything happens in the browser (no backend server)
-
-### 🎨 Clean & Modern UI
-- White layout with dark text and an indigo accent theme
-- Smooth animations and hover effects
-- Refined movie card design
-- Fully responsive across devices
-
-### ⚡ Static & Fast
-- No server needed
-- Works great on:
-  - **Vercel**
-  - **Netlify**
-  - **GitHub Pages**
+### The Backend
+- **Firebase Auth:** Secure Google & Email login that persists forever.
+- **Cloud Firestore:** Real-time database that never "pauses" due to inactivity (unlike Supabase).
+- **Vercel Serverless:** Securely handles API keys so they are never exposed to the client.
 
 ---
 
-## 📁 Project Structure
+## Technologies Used
 
-- index.html
-- script.js
-- style.css
-- placeholder.png
-- README.MD
----
-## 🔧 Technologies Used
-- **Supabase Auth** 
-- **Supabase Postgres + Row Level Security**
-- **HTML5**
-- **CSS3**
-- **Vanilla JavaScript**
-- **OMDb API** for movie posters & metadata
-- **Vercel** 
+- **Frontend:** HTML5, CSS3 (Zinc Theme), Vanilla JavaScript (ES Modules)
+- **Backend:** Google Firebase (Auth & Firestore)
+- **AI Engine:** Groq (Llama 3 Model)
+- **API Security:** Vercel Serverless Functions
+- **Data Source:** OMDb API
 
 ---
 
-## 🌐 Live Demo (Vercel)
+## Project Structure
 
-👉 **[View Live Demo](https://moray1.vercel.app/)**  
+```text
+/Moray
+  ├── api/
+  │    └── ai.js        # Secure Serverless Function for AI
+  ├── index.html        # Main App Structure
+  ├── script.js         # Frontend Logic (Firebase + UI)
+  ├── style.css         # Professional Dark Theme
+  └── README.md
+```
+---
+
+## Live Demo (Vercel)
+
+**[View Live Demo](https://morayio.vercel.app/)**  
 
 ---
 
-## 📱 Browser Support
-
-| Browser | Support |
-|--------|---------|
-| Chrome | ✅ |
-| Firefox | ✅ |
-| Safari | ✅ |
-| Edge | ✅ |
-| Mobile Browsers | ✅ |
-
----
-
-## 🤝 Developer
+## Developer
 
 - [@Reyan Arshad](https://www.linkedin.com/in/reyan36/)
 
 ---
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ## © 2025 MORAY All rights reserved
 
