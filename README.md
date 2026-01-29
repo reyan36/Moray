@@ -49,7 +49,7 @@ Moray is a minimal, professional movie tracking application built on the **"Live
 
 Click to watch the video ▶️
 
-[![Watch the video](https://img.youtube.com/vi/hS93BTOJNqU/maxresdefault.jpg)](https://www.youtube.com/watch?v=hS93BTOJNqU)
+[![Watch the video](https://img.youtube.com/vi/nAhyaMhulVc/maxresdefault.jpg)](https://www.youtube.com/watch?v=nAhyaMhulVc)
 
 
 ## Developer
