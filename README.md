@@ -1,10 +1,10 @@
-# 🎬 MORAY
+# MORAY
 
 **Your personal cinema archive, powered by AI.**
 
 Moray is a minimal, professional movie tracking application built on the **"Live Forever"** architecture. It combines a distraction-free interface with **Google Firebase** for permanent storage and **Groq AI** for intelligent recommendations.
 
-## 👩🏽‍🍳 Features
+## Features
 
 ### AI 
 - **Smart Pick:** Can't decide? Tell the AI how much time you have (e.g., *"90 mins, sci-fi"*), and it will analyze your specific list to recommend the perfect movie.
@@ -22,7 +22,7 @@ Moray is a minimal, professional movie tracking application built on the **"Live
 
 
 
-## 📦 Technologies Used
+## Technologies Used
 
 - **Frontend:** HTML5, CSS3 (Zinc Theme), Vanilla JavaScript (ES Modules)
 - **Backend:** Google Firebase (Auth & Firestore)
@@ -32,7 +32,7 @@ Moray is a minimal, professional movie tracking application built on the **"Live
 
 
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 /Moray
