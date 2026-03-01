@@ -59,5 +59,5 @@ https://github.com/user-attachments/assets/66880ac3-0b73-4a6d-a764-36cda481f1be
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-## © 2025 MORAY All rights reserved
+## © 2026 MORAY All rights reserved
 
